@@ -1,0 +1,44 @@
+*gerrvim.txt*  Gerrit review's comments preparation helper
+
+CONFIGURATION                                    *gerrvim-configuration*
+
+The only option is the placement of temporary file with aggregated
+comments. By default it is /tmp/gerrvim.txt. You can override it
+in your .vimrc: >
+    let g:gerrvim_file = "/another/path.txt"
+
+USAGE                                                          *gerrvim*
+
+* Open necessary commit using Fugitive (:Gedit) and file inside it
+* Visually select a bunch of code lines you want to comment
+* Press <Leader>cc (usually "\cc") or call :Gerrvim command
+  specifying the range
+* You will see an additional small window with your code
+* Add necessary comment message below -----END----- line
+* Either press <CR> in normal mode, or save buffer and exit
+* Comment window will be closed, saving your consolidated changes
+  in temporary file
+* To wipe out all your comments type :GerrvimClear (or remove that
+  temporary file)
+
+Copied original text (that is between BEGIN and END line) won't be
+published in Gerrit. It exists just for your convenience.
+
+LICENCE                                                *gerrvim-license*
+
+Copyright (C) 2015 Sergey Matveev <stargrave@stargrave.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ vim:filetype=help

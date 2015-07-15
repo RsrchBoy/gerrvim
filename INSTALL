@@ -1,0 +1,8 @@
+You must have Fugitive (http://www.vim.org/scripts/script.php?script_id=2975)
+pluging installed in your Vim editor. Just copy plugin/gerrvim.vim file
+to ~/.vim/plugin. Optionally copy documentation from doc/gerrvim.txt
+to ~/.vim/doc.
+
+gerrvim2json.pl converter requires Perl interpreter and JSON
+(https://metacpan.org/pod/JSON) library. No specific installation for it
+required -- just call it from any place.
