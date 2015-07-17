@@ -94,6 +94,7 @@ use Encode;
 use JSON;
 
 my %comments;
+my $blockid;
 my $filename = undef;
 my $linebgn = undef;
 my $lineend = undef;
@@ -118,19 +119,21 @@ sub comment_done {
     } else {
         $c{range} = {start_line => $linebgn, end_line => $lineend};
     };
+    ($c{in_reply_to} = $1) if ($blockid =~ /^R(.*)$/);
     push @{$comments{$filename}}, \%c;
 }
 
 while (<>) {
     chomp;
-    if (/^-{5}BEGIN \w{40} (.*) (\d+) (\d+)-{5}$/) {
+    if (/^-{5}BEGIN (\w+) (.*) (\d+) (\d+)-{5}$/) {
         $verbatim_block = 1;
         ($main_message = buf2str) unless $blockn;
         $blockn++;
         comment_done if defined $filename;
-        $filename = $1;
-        $linebgn = $2;
-        $lineend = $3;
+        $blockid = $1;
+        $filename = $2;
+        $linebgn = $3;
+        $lineend = $4;
     };
     push @buf, $_ unless $verbatim_block;
     if (/^-{5}END-{5}$/) {
