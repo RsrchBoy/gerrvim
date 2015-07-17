@@ -112,11 +112,11 @@ sub buf2str {
 
 sub comment_done {
     ($comments{$filename} = []) unless defined $comments{$filename};
-    my %c = ("message" => buf2str);
+    my %c = (message => buf2str);
     if ($lineend - $linebgn == 1) {
-        $c{"line"} = $linebgn;
+        $c{line} = $linebgn;
     } else {
-        $c{"range"} = {start_line => $linebgn, end_line => $lineend};
+        $c{range} = {start_line => $linebgn, end_line => $lineend};
     };
     push @{$comments{$filename}}, \%c;
 }
@@ -140,5 +140,5 @@ while (<>) {
 comment_done;
 
 my %result = (comments => \%comments);
-($result{"message"} = $main_message) if $main_message;
+($result{message} = $main_message) if $main_message;
 print encode_json(\%result);
