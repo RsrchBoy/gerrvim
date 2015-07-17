@@ -1,13 +1,91 @@
-*gerrvim.txt*  Gerrit review's comments preparation helper
+*gerrvim.txt*  Gerrit review's comments preparation helper (Herr Vim)
 
-CONFIGURATION                                    *gerrvim-configuration*
+OVERVIEW                                              *gerrvim-overview*
 
-The only option is the placement of temporary file with aggregated
-comments. By default it is /tmp/gerrvim.txt. You can override it
-in your .vimrc: >
+Gerrit (https://www.gerritcodereview.com/) code review system by default
+has Web-based interface for creating comments for review. It requires to
+be online, with enabled JavaScript. It does not play well with some
+browsers that captures keystrokes. IT has no ability to change interface
+to something more convenient and comfortable to work with.
+
+Fortunately it has some API that provides ability to post bunch of
+comments for review in JSON format and you can use it to publish
+comments created with convenient offline tools.
+
+Gerrvim is a free software (see |gerrvim-license|) collection of helper
+utilities:
+
+* Converter (gerrvim2json.pl) from simple plain text human readable and
+  editable |gerrvim-format| itself to JSON suitable to be send to Gerrit.
+* Vim plugin to prepare that Gerrvim file by commenting the source code
+  added for review. It works together with Fugitive
+  (http://www.vim.org/scripts/script.php?script_id=2975).
+* Simple gerrcommget.sh shell/Perl script that downloads
+  comments and converts them to Gerrvim file.
+
+Gerrvim file is intended to be edited by human in any editor, in offline
+mode, with the whole everything aggregated in it at once. It is
+replacement for JavaScript online Web-based native Gerrite interface
+when you need to publish comments for the source code and replies to
+other one.
+
+WORKFLOW                                              *gerrvim-workflow*
+
+So you received a notify about review request. At first you need to
+download that patch (this is only an example): >
+    % git fetch gerrit changes/92/92/1
+
+Then you open this commit in Vim's Fugitive plugin: >
+    :Gedit FETCH_HEAD
+
+You can navigate through the files and diffs in it. Read Fugitive
+documentation for more information. For example you want to add a
+comment about some lines in the patch. Open that file inside the commit,
+select required lines, call code commenting (see |gerrvim-usage|), enter
+the comments in newly appeared window, close it by pressing <CR>.
+
+Repeat that step to add all the comments. They are aggregated in
+temporary Gerrvim file (/tmp/gerrvim.txt by default).
+
+When you finished with it, you can edit and correct Gerrvim file without
+any Fugitive later. Possibly to add a comment for the whole review, not
+related to any of the files.
+
+At last you want to publish all your writings. Use converter to create
+JSON from Gerrvim and send it directly to Gerrit. >
+    % gerrvim2json.pl /tmp/gerrvim.txt | ssh gerrit gerrit review --json
+
+Soon you may receive notification about someone replied to your
+comments. You can use gerrcommget.sh script to retrieve them and
+save as a Gerrvim file: >
+    % gerrcommget.sh 92 1 > /tmp/gerrvim.txt
+
+Be sure to precoconfigure |gerrvim-config| it and specify URL to your
+Gerrit's REST-API, your username and password.
+
+Edit that Gerrvim file and convert to JSON with sending to the server
+again. It has slightly different headers and you comments will be
+published as a reply to other ones.
+
+INSTALLATION                                           *gerrvim-install*
+
+* Install Fugitive plugin for the Vim
+* Install Perl JSON (https://metacpan.org/pod/JSON) and Encode modules
+* Copy plugin/gerrvim.vim to ~/.vim/plugin
+* Optionally copy that readme to ~/.vim/doc/gerrvim.txt
+
+CONFIGURATION                                           *gerrvim-config*
+
+The only option for the Vim plugin is the placement of temporary file
+with aggregated comments. By default it is /tmp/gerrvim.txt. You can
+override it in your .vimrc: >
     let g:gerrvim_file = "/another/path.txt"
 
-USAGE                                                          *gerrvim*
+Edit gerrcommget.sh and specify necessary GERRADDR (Gerrit's
+server URL), GERRUSER (your username) and GERRPASS (password) variables.
+You can override them anytime with environment variables.
+
+PLUGIN USAGE                                             *gerrvim-usage*
 
 * Open necessary commit using Fugitive (:Gedit) and file inside it
 * Visually select a bunch of code lines you want to comment
@@ -18,11 +96,53 @@ USAGE                                                          *gerrvim*
 * Either press <CR> in normal mode, or save buffer and exit
 * Comment window will be closed, saving your consolidated changes
   in temporary file
-* To wipe out all your comments type :GerrvimClear (or remove that
-  temporary file)
+* To wipe out all your comments either call :GerrvimClear or remove
+  that temporary file)
 
-Copied original text (that is between BEGIN and END line) won't be
-published in Gerrit. It exists just for your convenience.
+GERRVIM FILE FORMAT                                     *gerrvim-format*
+
+Gerrvim's file includes blocks of text separated by BEGIN/END lines. >
+    Some main review message.
+    It can be multilined.
+
+    -----BEGIN 2c5405c8145e61b738953b4e Makefile 27 29-----
+    foo: bar
+        make -C some thing
+    -----END-----
+    You must replace make with $(MAKE).
+
+    And I could write it multiline too.
+
+
+    -----BEGIN 2c5405c8145e61b738953b4e Makefile 1 2-----
+    #/usr/bin/make
+    -----END-----
+    Remove that.
+
+    -----BEGIN R1a014df3_5b8de330 README 20 22-----
+    Vasyliy Pupkin:
+    I am not sure about that corrections. What do you think?
+    -----END-----
+    Seems you are right.
+
+BEGIN line contains:
+
+* Either commit's hash, or comment's id with "R" prefix. If R-prefixed
+  comment's id is specified, then you will be replying to it
+* Path to the file inside source code tree
+* Linenumber where comment begins
+* Linenumber where comment ends
+
+You are capable to comment either range of lines, or the single one.
+
+Everything between BEGIN and END lines is just for convenience and won't
+be published anywhere, it is cut.
+
+The text between END and next BEGIN line is the comment itself. It can
+be multilined. All empty lines at the end are removed.
+
+Optional text before the very first BEGIN line will be review's main
+message, not related to any file.
 
 LICENCE                                                *gerrvim-license*
 
