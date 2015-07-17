@@ -54,10 +54,7 @@ is transformed to JSON like this:
           },
           {
             "message": "Remove that.",
-            "range": {
-              "end_line": "2",
-              "start_line": "1"
-            }
+            "line": 1
           }
         ]
       }
@@ -115,10 +112,13 @@ sub buf2str {
 
 sub comment_done {
     ($comments{$filename} = []) unless defined $comments{$filename};
-    push @{$comments{$filename}}, {
-        range => {start_line => $linebgn, end_line => $lineend},
-        message => buf2str,
+    my %c = ("message" => buf2str);
+    if ($lineend - $linebgn == 1) {
+        $c{"line"} = $linebgn;
+    } else {
+        $c{"range"} = {start_line => $linebgn, end_line => $lineend};
     };
+    push @{$comments{$filename}}, \%c;
 }
 
 while (<>) {
