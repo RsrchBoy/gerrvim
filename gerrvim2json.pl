@@ -68,7 +68,8 @@ while (<>) {
         $verbatim_block = 0;
     };
 };
-comment_done;
+comment_done if defined $filename;
+($main_message = buf2str) if !$blockn;
 
 my %result = (comments => \%comments);
 ($result{message} = $main_message) if $main_message;
